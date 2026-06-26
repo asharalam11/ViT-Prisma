@@ -399,10 +399,16 @@ def _get_timm_hf_config(model_name: str):
     """Get HuggingFace config from TIMM model."""
     import timm
 
-    model = timm.create_model(model_name)
+    timm_model = timm.create_model(model_name)
     from transformers import AutoConfig
 
-    hf_config = AutoConfig.from_pretrained(model.default_cfg["hf_hub_id"])
+    hf_config = AutoConfig.from_pretrained(timm_model.default_cfg["hf_hub_id"])
+
+    # HF Hub configs for timm models sometimes have a wrong patch_size; correct from the actual model
+    actual_patch_size = timm_model.patch_embed.proj.kernel_size[0]
+    if hasattr(hf_config, "patch_size") and hf_config.patch_size != actual_patch_size:
+        hf_config.patch_size = actual_patch_size
+
     return hf_config
 
 

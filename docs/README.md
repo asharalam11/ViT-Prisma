@@ -35,6 +35,35 @@ cd ViT-Prisma
 pip install -e .
 ```
 
+### Alternative: uv (faster)
+
+```bash
+# Install uv (one-time)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+git clone https://github.com/soniajoseph/ViT-Prisma
+cd ViT-Prisma
+uv venv --python 3.11
+source .venv/bin/activate
+uv pip install -e .
+
+# With SAE support
+uv pip install -e ".[sae]"
+```
+
+### Jupyter / VSCode kernel setup
+
+```bash
+uv pip install ipykernel
+python -m ipykernel install --user --name vit-prisma --display-name "ViT-Prisma"
+```
+
+Then in VSCode: open a notebook → **Select Kernel** → **Jupyter Kernel** → **ViT-Prisma**.
+
+### Apple Silicon (M1/M2/M3/M4)
+
+PyTorch includes MPS support — no extra steps needed. Use `model.to('mps')` instead of `model.to('cuda')`.
+
 # Models Supported
 We support most vision/video transformers loaded from OpenCLIP and Huggingface, including ViTs, CLIP, DINO, and JEPA, with a few exceptions (e.g. if the architecture is substantially different).
 
