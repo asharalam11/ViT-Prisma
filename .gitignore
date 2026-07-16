@@ -134,6 +134,9 @@ configs/
 !configs/
 !configs/.gitkeep
 
+# Claude project notes
+.claude/
+
 # User-specific and OS-specific files
 .DS_Store
 .DS_Store?
@@ -143,3 +146,6 @@ configs/
 ehthumbs.db
 Thumbs.db
 .idea
+
+# Local SAE results, plots, grant docs (not code)
+colab/results/

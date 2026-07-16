@@ -33,6 +33,7 @@ from vit_prisma.models.weight_conversion import (
     convert_kandinsky_clip_weights,
     convert_open_clip_text_weights,
     convert_open_clip_weights,
+    convert_siglip_weights,
     convert_timm_weights,
     convert_vivet_weights,
     convert_vjepa_weights,
@@ -200,7 +201,7 @@ def load_config(
     elif category == ModelCategory.DINO:
         old_config = _get_general_hf_config(model_name, model_type=None)
         new_config = _create_config_from_hf(old_config, model_name, model_type=None)
-    elif category in [ModelCategory.CLIP, ModelCategory.VIVIT]:
+    elif category in [ModelCategory.CLIP, ModelCategory.VIVIT, ModelCategory.SIGLIP]:
         old_config = _get_general_hf_config(model_name, model_type)
         new_config = _create_config_from_hf(old_config, model_name, model_type)
 
@@ -399,10 +400,16 @@ def _get_timm_hf_config(model_name: str):
     """Get HuggingFace config from TIMM model."""
     import timm
 
-    model = timm.create_model(model_name)
+    timm_model = timm.create_model(model_name)
     from transformers import AutoConfig
 
-    hf_config = AutoConfig.from_pretrained(model.default_cfg["hf_hub_id"])
+    hf_config = AutoConfig.from_pretrained(timm_model.default_cfg["hf_hub_id"])
+
+    # HF Hub configs for timm models sometimes have a wrong patch_size; correct from the actual model
+    actual_patch_size = timm_model.patch_embed.proj.kernel_size[0]
+    if hasattr(hf_config, "patch_size") and hf_config.patch_size != actual_patch_size:
+        hf_config.patch_size = actual_patch_size
+
     return hf_config
 
 
@@ -667,6 +674,9 @@ def load_original_weights(
     elif category == ModelCategory.OPEN_CLIP:
         return _load_open_clip_weights(model_name, local_path=local_path, **kwargs)
 
+    elif category == ModelCategory.SIGLIP:
+        return _load_siglip_weights(model_name, dtype, **kwargs)
+
     elif category == ModelCategory.DINO:
         return _load_dino_weights(model_name, dtype, **kwargs)
 
@@ -724,6 +734,8 @@ def convert_weights(
             if model_type == ModelType.TEXT
             else convert_open_clip_weights
         )
+    elif category == ModelCategory.SIGLIP:
+        converter = convert_siglip_weights
     elif category == ModelCategory.DINO:
         converter = convert_dino_weights
     elif category == ModelCategory.VIVIT:
@@ -829,6 +841,16 @@ def _load_eva02_weights(model_name, **kwargs):
     name, weights = model_name_clean.split(".")
     name = name.split("/")[1]
     model = timm.create_model(name, pretrained=weights)
+    for param in model.parameters():
+        param.requires_grad = False
+    return model.state_dict()
+
+
+def _load_siglip_weights(model_name, dtype, **kwargs):
+    """Load weights from a SigLIP model."""
+    from transformers import SiglipVisionModel
+
+    model = SiglipVisionModel.from_pretrained(model_name, torch_dtype=dtype, **kwargs)
     for param in model.parameters():
         param.requires_grad = False
     return model.state_dict()

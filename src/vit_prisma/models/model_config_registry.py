@@ -18,6 +18,7 @@ class ModelCategory(Enum):
     DINO = "dino"
     VIVIT = "vivit"
     VJEPA = "vjepa"
+    SIGLIP = "siglip"
 
 
 # ===============================
@@ -598,6 +599,22 @@ VJEPA_CONFIGS = {
 }
 
 
+# SigLIP model configurations
+SIGLIP_CONFIGS = {
+    "google/siglip-base-patch16-224": {
+        "return_type": "pre_logits",
+        "use_cls_token": False,
+        "layer_norm_pre": False,
+        "eps": 1e-6,
+    },
+    "google/siglip2-base-patch16-224": {
+        "return_type": "pre_logits",
+        "use_cls_token": False,
+        "layer_norm_pre": False,
+        "eps": 1e-6,
+    },
+}
+
 # ===============================
 # Text Model Configurations
 # ===============================
@@ -702,6 +719,7 @@ MODEL_CATEGORIES = {
     **{name: ModelCategory.DINO for name in DINO_CONFIGS},
     **{name: ModelCategory.VIVIT for name in VIVIT_CONFIGS},
     **{name: ModelCategory.VJEPA for name in VJEPA_CONFIGS},
+    **{name: ModelCategory.SIGLIP for name in SIGLIP_CONFIGS},
 }
 
 # Combined configuration dictionary
@@ -715,6 +733,7 @@ MODEL_CONFIGS = {
         **DINO_CONFIGS,
         **VIVIT_CONFIGS,
         **VJEPA_CONFIGS,
+        **SIGLIP_CONFIGS,
     },
     # Text configurations
     ModelType.TEXT: {
